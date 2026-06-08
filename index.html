@@ -1136,6 +1136,112 @@
       btn.classList.toggle('selected', i === state.myVote);
     });
   }
+
+  /* ===== 快速跳頁面板 ===== */
+  (function() {
+    const style = document.createElement('style');
+    style.textContent = `
+      #nav-trigger {
+        position: fixed; top: 0; left: 0;
+        width: 48px; height: 48px;
+        z-index: 9998; cursor: pointer;
+      }
+      #nav-panel {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%) scale(0.92);
+        background: rgba(13,17,23,0.97);
+        border: 1px solid rgba(79,195,247,0.25);
+        border-radius: 16px;
+        padding: 24px 20px 20px;
+        z-index: 9999;
+        width: 480px; max-height: 80vh;
+        overflow-y: auto;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.18s, transform 0.18s;
+        box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+      }
+      #nav-panel.show {
+        display: block;
+        animation: navIn 0.18s forwards;
+      }
+      @keyframes navIn {
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+      #nav-panel h3 {
+        color: #4fc3f7; font-size: 13px; letter-spacing: 0.12em;
+        margin: 0 0 14px; text-transform: uppercase; text-align: center;
+      }
+      .nav-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      }
+      .nav-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px; padding: 10px 8px;
+        color: #ccc; font-size: 11px; cursor: pointer;
+        text-align: center; line-height: 1.4;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .nav-btn:hover { background: rgba(79,195,247,0.15); border-color: #4fc3f7; color: #fff; }
+      .nav-btn .n { font-size: 10px; color: #555; display: block; margin-bottom: 3px; }
+      #nav-close {
+        position: absolute; top: 12px; right: 14px;
+        background: none; border: none; color: #555;
+        font-size: 18px; cursor: pointer; line-height: 1;
+      }
+      #nav-close:hover { color: #fff; }
+      #nav-overlay {
+        position: fixed; inset: 0; z-index: 9997; display: none;
+      }
+      #nav-overlay.show { display: block; }
+    `;
+    document.head.appendChild(style);
+
+    const slides = [
+      [1,'封面'], [2,'講者介紹'], [3,'機關簡介 I'], [4,'機關簡介 II'],
+      [5,'破冰文字雲'], [6,'影視 vs 現實'], [7,'現代犯罪樣貌'],
+      [8,'什麼是科技偵查'], [9,'演進時間軸'], [10,'AI 偵查的武器'],
+      [11,'數位足跡'], [12,'你留下什麼足跡'], [13,'資料分析'],
+      [14,'台灣現況'], [15,'Deepfake'], [16,'OSINT'],
+      [17,'OSINT 工具'], [18,'道德爭議'], [19,'AI 能定罪嗎'],
+      [20,'投票'], [21,'各國法規'], [22,'AI 的天花板'],
+      [23,'未來五年'], [24,'課後反思'], [25,'Q & A'],
+    ];
+
+    const overlay = document.createElement('div');
+    overlay.id = 'nav-overlay';
+    document.body.appendChild(overlay);
+
+    const trigger = document.createElement('div');
+    trigger.id = 'nav-trigger';
+    document.body.appendChild(trigger);
+
+    const panel = document.createElement('div');
+    panel.id = 'nav-panel';
+    panel.innerHTML = `<button id="nav-close">✕</button><h3>⚡ 快速跳頁</h3><div class="nav-grid">${
+      slides.map(([n, t]) =>
+        `<button class="nav-btn" onclick="navGo(${n-1})"><span class="n">${n}</span>${t}</button>`
+      ).join('')
+    }</div>`;
+    document.body.appendChild(panel);
+
+    window.navGo = function(idx) { Reveal.slide(idx); closeNav(); };
+
+    function openNav() {
+      overlay.classList.add('show');
+      panel.classList.add('show');
+    }
+    function closeNav() {
+      overlay.classList.remove('show');
+      panel.classList.remove('show');
+    }
+
+    trigger.addEventListener('click', openNav);
+    overlay.addEventListener('click', closeNav);
+    document.getElementById('nav-close').addEventListener('click', closeNav);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+  })();
 </script>
 </body>
 </html>
