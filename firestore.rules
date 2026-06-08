@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /wordcloud_words/{document} {
+      allow read, write: if true;
+    }
+    match /students/{document} {
+      allow read, write: if true;
+    }
+    match /videos/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // AI 科技偵查簡報 — 文字雲集合
+    match /aitechdet_wordcloud/{document} {
+      allow read, write: if true;
+    }
+    match /aitechdet_reflect/{document} {
+      allow read, write: if true;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

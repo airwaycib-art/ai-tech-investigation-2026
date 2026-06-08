@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 時代下的科技偵查</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css" />
+  <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp }
+      from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBKSaZxs-tbW7bhxMVkyAr8yJ9lcxrmY0",
+      authDomain: "claudeproject-a94ee.firebaseapp.com",
+      projectId: "claudeproject-a94ee",
+      storageBucket: "claudeproject-a94ee.firebasestorage.app",
+      messagingSenderId: "708325305180",
+      appId: "1:708325305180:web:b7617def9617d858a5af99"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const COLS    = { icebreak: 'aitechdet_wordcloud', reflect: 'aitechdet_reflect' };
+    const CANVAS  = { icebreak: 'wc-canvas', reflect: 'wc2-canvas' };
+    const INPUTS  = { icebreak: 'wc-input',  reflect: 'wc2-input' };
+    const HOSTING = 'https://claudeproject-a94ee.web.app';
+
+    const COLORS = ['#e8643a','#4fc3f7','#81c784','#ffb74d','#ce93d8','#80cbc4'];
+
+    function renderWordCloud(canvasId, counts) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const list = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+      if (!list.length) return;
+      const max = list[0][1];
+      WordCloud(canvas, {
+        list: list.map(([w,c]) => [w, Math.max(14, Math.round((c/max)*72))]),
+        gridSize: 8, weightFactor: 1,
+        fontFamily: '"Microsoft JhengHei","Noto Sans TC",sans-serif',
+        color: () => COLORS[Math.floor(Math.random()*COLORS.length)],
+        rotateRatio: 0.3, backgroundColor: 'rgba(0,0,0,0)', shuffle: true,
+      });
+    }
+
+    // 訂閱兩個 room
+    ['icebreak','reflect'].forEach(room => {
+      const ref = collection(db, COLS[room]);
+      onSnapshot(query(ref, orderBy('ts','asc')), snap => {
+        const counts = {};
+        snap.forEach(d => {
+          const w = d.data().word;
+          counts[w] = (counts[w]||0) + 1;
+        });
+        renderWordCloud(CANVAS[room], counts);
+      });
+    });
+
+    // 讓非 module 的 onclick 可呼叫
+    window.wcFirebaseSubmit = async function(room) {
+      const input = document.getElementById(INPUTS[room]);
+      const word = input.value.trim();
+      if (!word) return;
+      input.value = '';
+      try { await addDoc(collection(db, COLS[room]), { word, ts: serverTimestamp() }); }
+      catch(e) { console.error(e); }
+      input.focus();
+    };
+
+    // QR code（指向 Firebase Hosting）
+    window.addEventListener('load', () => {
+      if (typeof QRCode === 'undefined') return;
+      ['icebreak','reflect'].forEach(room => {
+        const url = `${HOSTING}/input.html?room=${room}`;
+        const el = document.getElementById(`qr-url-${room}`);
+        if (el) el.textContent = url;
+        const qrEl = document.getElementById(`qr-${room}`);
+        if (qrEl) new QRCode(qrEl, { text: url, width: 128, height: 128,
+          colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
+      });
+    });
+  </script>
+  <style>
+    /* === 全域變數 === */
+    :root {
+      --accent:  #e8643a;
+      --accent2: #4fc3f7;
+      --success: #81c784;
+      --warn:    #ffb74d;
+    }
+
+    .reveal {
+      font-family: 'Segoe UI', 'Noto Sans TC', sans-serif;
+    }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: 'Segoe UI', 'Noto Sans TC', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.5em; color: var(--accent2); }
+    .reveal .progress { color: var(--accent); }
+    .reveal .fragment { opacity: 0.2; }
+    .reveal .fragment.visible { opacity: 1; }
+
+    /* === 封面 === */
+    .title-slide { text-align: center; }
+    .title-slide .tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.55em;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.8em;
+      font-weight: 600;
+    }
+    .title-slide .subtitle { font-size: 0.75em; color: #aaa; margin-top: 0.5em; }
+    .title-slide .author   { margin-top: 2em; font-size: 0.5em; color: #888; }
+
+    /* === 統計數字卡 === */
+    .stat-row { display: flex; gap: 20px; justify-content: center; margin-top: 1em; }
+    .stat-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 20px 26px;
+      text-align: center;
+      flex: 1;
+    }
+    .stat-card .num   { font-size: 1.8em; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-card .label { font-size: 0.42em; color: #ccc; margin-top: 6px; }
+
+    /* === 優勢卡（並列特點）=== */
+    .adv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 0.6em; }
+    .adv-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; margin-top: 0.6em; }
+    .adv-card {
+      background: rgba(255,255,255,0.05);
+      border-top: 4px solid var(--accent2);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .adv-card .adv-icon { margin-bottom: 8px; font-size: 2em; }
+    .adv-card .adv-icon img {
+      width: 56px; height: 56px; object-fit: contain;
+      display: block; margin: 0 auto;
+      filter: drop-shadow(0 0 10px rgba(79,195,247,0.6));
+    }
+    .adv-card .adv-title { font-size: 0.5em; font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
+    .adv-card .adv-desc  { font-size: 0.4em; color: #bbb; line-height: 1.6; }
+
+    /* === VS 對比 === */
+    .vs-grid { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; align-items: start; margin-top: 0.6em; }
+    .vs-col { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; }
+    .vs-col.left-col  { border-top: 3px solid var(--accent2); }
+    .vs-col.right-col { border-top: 3px solid var(--warn); }
+    .vs-label { font-size: 0.7em; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.05em; }
+    .vs-label.left  { color: var(--accent2); }
+    .vs-label.right { color: var(--warn); }
+    .vs-center { display: flex; align-items: center; justify-content: center; font-size: 1.4em; font-weight: 900; color: #555; }
+    .vs-col ul { font-size: 0.42em; list-style: none; padding: 0; margin: 0; }
+    .vs-col ul li { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .vs-col ul li:last-child { border-bottom: none; }
+    .vs-col ul li::before { content: "✦ "; opacity: 0.5; }
+
+    /* === 時間軸 === */
+    .timeline { position: relative; padding-left: 36px; margin-top: 0.8em; }
+    .timeline::before {
+      content: ''; position: absolute; left: 14px; top: 4px; bottom: 4px;
+      width: 2px; background: rgba(255,255,255,0.2);
+    }
+    .timeline-item { position: relative; margin-bottom: 18px; font-size: 0.46em; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: -28px; top: 4px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #1a1a2e;
+    }
+    .timeline-item .ti-date { color: var(--accent); font-weight: 700; font-size: 1.1em; margin-bottom: 2px; }
+    .timeline-item .ti-text { color: #ccc; }
+
+    /* === 引用 === */
+    .quote-box {
+      background: rgba(255,255,255,0.05);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 0.8em 0;
+      font-size: 0.55em;
+      color: #ddd;
+      font-style: italic;
+      line-height: 1.7;
+    }
+    .quote-author { font-size: 0.4em; color: #888; text-align: right; margin-top: 8px; font-style: normal; }
+
+    /* === 結論卡 === */
+    .conclusion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0.8em; }
+    .conclusion-card { border-radius: 10px; padding: 18px; font-size: 0.44em; }
+    .conclusion-card.positive {
+      background: rgba(79,195,247,0.12);
+      border: 1px solid rgba(79,195,247,0.35);
+    }
+    .conclusion-card.caution {
+      background: rgba(255,183,77,0.1);
+      border: 1px solid rgba(255,183,77,0.3);
+    }
+    .conclusion-card .cc-title { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; }
+    .conclusion-card.positive .cc-title { color: var(--accent2); }
+    .conclusion-card.caution  .cc-title { color: var(--warn); }
+    .conclusion-card ul { list-style: none; padding: 0; margin: 0; color: #ccc; line-height: 1.8; }
+    .conclusion-card ul li::before { content: "→ "; opacity: 0.6; }
+
+    /* === 表格 === */
+    .reveal table { font-size: 0.45em; width: 100%; border-collapse: collapse; margin-top: 0.8em; }
+    .reveal table th {
+      background: rgba(79,195,247,0.2);
+      color: var(--accent2);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid rgba(79,195,247,0.4);
+    }
+    .reveal table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      color: #ccc;
+    }
+    .reveal table tr:hover td { background: rgba(255,255,255,0.04); }
+
+    /* === 標籤徽章 === */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.38em;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .badge-blue  { background: rgba(79,195,247,0.2);  color: var(--accent2); border: 1px solid rgba(79,195,247,0.4); }
+    .badge-red   { background: rgba(232,100,58,0.2);  color: var(--accent);  border: 1px solid rgba(232,100,58,0.4); }
+    .badge-warn  { background: rgba(255,183,77,0.2);  color: var(--warn);    border: 1px solid rgba(255,183,77,0.4); }
+    .badge-green { background: rgba(129,199,132,0.2); color: var(--success); border: 1px solid rgba(129,199,132,0.4); }
+
+    /* === 封底 === */
+    .end-slide { text-align: center; }
+    .end-slide .big { font-size: 3em; margin-bottom: 0.2em; }
+    .end-slide .tagline { font-size: 0.65em; color: #aaa; }
+
+    /* === 互動元件通用 === */
+    .interact-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 0.8em;
+    }
+    .interact-input {
+      display: flex; gap: 10px; margin-top: 1em;
+    }
+    .interact-input input {
+      flex: 1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fff;
+      font-size: 0.9em;
+      outline: none;
+    }
+    .interact-input input:focus { border-color: var(--accent2); }
+    .interact-input button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 0.85em;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .interact-input button:hover { opacity: 0.85; }
+
+    /* === 投票選項 === */
+    .poll-options { display: flex; flex-direction: column; gap: 10px; margin-top: 1em; }
+    .poll-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 12px 20px;
+      color: #ddd;
+      font-size: 0.45em;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .poll-btn:hover { border-color: var(--accent2); background: rgba(79,195,247,0.08); }
+    .poll-btn.selected { border-color: var(--accent2); background: rgba(79,195,247,0.15); color: #fff; }
+    .poll-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 4px; }
+    .poll-bar-fill { height: 100%; background: var(--accent2); border-radius: 2px; transition: width 0.5s; }
+
+    /* === VIZ 滑桿 === */
+    .viz-slider-wrap { position: relative; height: 360px; border-radius: 12px; overflow: hidden; margin-top: 0.8em; }
+    #viz-slider {
+      width: 100%; margin-top: 12px;
+      accent-color: var(--accent2);
+    }
+
+    /* === LIVE 動畫 === */
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .live-dot {
+      display: inline-block; width: 8px; height: 8px;
+      background: #f44; border-radius: 50%;
+      animation: pulse 1.5s infinite; margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ==================== P1 封面 ==================== -->
+    <section data-background-image="images/cover.png"
+             data-background-opacity="0.35"
+             data-background-size="cover">
+      <div class="title-slide">
+        <h1>AI 時代下的<br>科技偵查</h1>
+        <p class="author">2026.06</p>
+      </div>
+    </section>
+
+    <!-- ==================== P2 講者介紹 ==================== -->
+    <section>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:36px;align-items:center;text-align:left;">
+        <!-- 照片區 -->
+        <div style="text-align:center;">
+          <img src="images/speaker.jpg"
+               alt="黃禎慶"
+               style="width:180px;height:180px;border-radius:50%;object-fit:cover;object-position:top;
+                      border:3px solid rgba(79,195,247,0.4);display:block;margin:0 auto;" />
+          <div style="margin-top:14px;">
+            <span class="badge badge-blue" style="font-size:0.55em;">刑事警察局</span>
+          </div>
+        </div>
+        <!-- 文字區 -->
+        <div>
+          <div style="font-size:0.38em;color:var(--accent2);letter-spacing:0.1em;margin-bottom:6px;">TODAY'S SPEAKER</div>
+          <h1 style="font-size:1.6em;margin:0 0 4px;">黃禎慶</h1>
+          <p style="font-size:0.48em;color:#aaa;margin:0 0 20px;">Chen-Chin (Eric) Huang</p>
+
+          <div style="font-size:0.44em;color:var(--accent);font-weight:700;margin-bottom:8px;">
+            團隊領導｜刑事警察局網路犯罪中心
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+            <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+              <div style="font-size:0.36em;color:var(--accent2);font-weight:700;margin-bottom:6px;">學歷</div>
+              <ul style="font-size:0.36em;color:#ccc;list-style:none;padding:0;margin:0;line-height:1.9;">
+                <li>國立交通大學 電信工程學士</li>
+                <li>國立清華大學 通訊工程碩士</li>
+              </ul>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+              <div style="font-size:0.36em;color:var(--accent2);font-weight:700;margin-bottom:6px;">重要經歷</div>
+              <ul style="font-size:0.36em;color:#ccc;list-style:none;padding:0;margin:0;line-height:1.9;">
+                <li>FBI 國家學院第 290 期結業代表</li>
+                <li>行政院資通安全處 借調</li>
+                <li>ICANN GAC 公共安全小組成員</li>
+                <li>多次代表台灣出席跨國網路犯罪會議</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="badge badge-blue">通訊技術</span>
+            <span class="badge badge-blue">網路犯罪偵查</span>
+            <span class="badge badge-blue">資訊安全</span>
+            <span class="badge badge-warn">2006 警察特考</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P3 機關簡介 - 科技犯罪防制中心 ==================== -->
+    <section>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:0.4em;">
+        <div style="
+          background:rgba(232,100,58,0.15);border:1px solid rgba(232,100,58,0.4);
+          border-radius:8px;padding:6px 14px;font-size:0.38em;color:var(--accent);
+          font-weight:700;letter-spacing:0.06em;white-space:nowrap;">
+          內政部警政署刑事警察局
+        </div>
+      </div>
+      <h2 style="margin-top:0;">科技犯罪防制中心</h2>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:0.6em;">
+        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:18px;border-left:3px solid var(--accent);">
+          <div style="font-size:0.38em;color:var(--accent2);font-weight:700;letter-spacing:0.06em;margin-bottom:10px;">職掌任務</div>
+          <ol style="font-size:0.38em;color:#ccc;padding-left:1.2em;margin:0;line-height:2.0;">
+            <li>科技犯罪防制措施之<strong style="color:#fff;">規劃、執行、督導及考核</strong></li>
+            <li>科技偵查人員<strong style="color:#fff;">教育訓練</strong>之規劃、執行、督導及考核</li>
+            <li>科技犯罪情資之<strong style="color:#fff;">蒐集、綜合研整及協調運用</strong></li>
+            <li>重大、特殊新興科技犯罪案件與<strong style="color:#fff;">資通訊安全案件</strong>之統合、支援及偵查</li>
+            <li>其他有關科技犯罪防制事項</li>
+          </ol>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:10px;padding:14px;">
+            <div style="font-size:0.38em;color:var(--accent2);font-weight:700;margin-bottom:6px;">下轄五個單位</div>
+            <div style="font-size:0.38em;color:#ccc;line-height:2.0;">
+              科技研發科・刑事資訊科・通訊監察科<br>偵查第九大隊・電信偵查大隊
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px;flex:1;">
+            <div style="font-size:0.38em;color:var(--accent2);font-weight:700;margin-bottom:6px;">指揮體系</div>
+            <div style="font-size:0.36em;color:#bbb;line-height:1.9;">
+              各下轄單位執行科技犯罪防制<br>相關勤務及業務，<br>兼受科技犯罪防制中心<br><strong style="color:#fff;">主任之指揮監督</strong>
+            </div>
+          </div>
+          <div style="background:rgba(232,100,58,0.08);border:1px solid rgba(232,100,58,0.2);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:0.36em;color:#888;">更新：112年8月21日｜刑事警察局人事室</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P4 機關簡介 - 下轄單位 ==================== -->
+    <section>
+      <h2>科技犯罪防制中心｜下轄單位</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:0.7em;">
+
+        <div class="adv-card" style="border-top-color:var(--accent2);">
+          <div class="adv-icon">🔬</div>
+          <div class="adv-title">科技研發科</div>
+          <div class="adv-desc">
+            新興科技偵查工具研發<br>
+            AI 輔助辦案技術評估<br>
+            偵查技術標準化與推廣
+          </div>
+        </div>
+
+        <div class="adv-card" style="border-top-color:var(--accent2);">
+          <div class="adv-icon">💻</div>
+          <div class="adv-title">刑事資訊科</div>
+          <div class="adv-desc">
+            犯罪資訊系統建置管理<br>
+            數位鑑識平台維運<br>
+            跨機關資料交換協作
+          </div>
+        </div>
+
+        <div class="adv-card" style="border-top-color:var(--accent2);">
+          <div class="adv-icon">📡</div>
+          <div class="adv-title">通訊監察科</div>
+          <div class="adv-desc">
+            合法通訊監察執行<br>
+            監察令狀審查配合<br>
+            通訊截取技術支援
+          </div>
+        </div>
+
+        <div class="adv-card" style="border-top-color:var(--warn);grid-column:span 1;">
+          <div class="adv-icon">🕵️</div>
+          <div class="adv-title">偵查第九大隊</div>
+          <div class="adv-desc">
+            重大科技犯罪專責偵查<br>
+            網路詐騙、駭客入侵<br>
+            跨境網路犯罪追查
+          </div>
+        </div>
+
+        <div class="adv-card" style="border-top-color:var(--warn);grid-column:span 2;">
+          <div class="adv-icon">📶</div>
+          <div class="adv-title">電信偵查大隊</div>
+          <div class="adv-desc" style="text-align:left;padding:0 10px;">
+            ✦ 電話詐騙集團偵破・電信違規業者查緝<br>
+            ✦ 非法境外電信設備（偽基站）取締<br>
+            ✦ 聲紋比對、通聯分析支援各地警察機關<br>
+            ✦ 跨國電信詐騙國際合作聯繫
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== P5 破冰文字雲 ==================== -->
+    <section id="slide-icebreak">
+      <h2><span class="live-dot"></span>破冰提問</h2>
+      <p style="font-size:0.5em; color:#aaa; margin-bottom:0.6em;">你覺得現代警察辦案最重要的工具是什麼？</p>
+      <div style="display:grid;grid-template-columns:1fr 160px;gap:16px;align-items:start;">
+        <div>
+          <canvas id="wc-canvas" width="700" height="260"
+                  style="width:100%;border-radius:8px;background:rgba(0,0,0,0.3);display:block;"></canvas>
+          <div class="interact-input" style="margin-top:10px;">
+            <input id="wc-input" type="text" placeholder="或在此直接輸入…" maxlength="12" />
+            <button onclick="wcSubmit('icebreak')">送出</button>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.38em;color:var(--accent2);font-weight:700;margin-bottom:8px;letter-spacing:0.06em;">用手機掃描</div>
+          <div id="qr-icebreak" style="border-radius:8px;background:#fff;padding:6px;width:140px;height:140px;display:flex;align-items:center;justify-content:center;margin:0 auto;"></div>
+          <div style="font-size:0.32em;color:#666;margin-top:8px;" id="qr-url-icebreak">連線中…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P3 影視 vs 現實 VIZ ==================== -->
+    <section>
+      <h2>你以為偵查是這樣…</h2>
+      <div class="viz-slider-wrap">
+        <div id="viz-before" style="
+          position:absolute;inset:0;
+          background: linear-gradient(135deg,#1a1a2e,#16213e);
+          display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+          <p style="font-size:1.4em;font-weight:800;color:var(--warn);">📺 影視印象</p>
+          <ul style="font-size:0.45em;color:#bbb;list-style:none;text-align:center;line-height:2.2;">
+            <li>神探靠直覺一眼識破</li>
+            <li>超級電腦秒比對全國人臉</li>
+            <li>手機一插即破解所有加密</li>
+            <li>AI 預知明天誰會犯罪</li>
+          </ul>
+        </div>
+        <div id="viz-after" style="
+          position:absolute;inset:0;clip-path:inset(0 100% 0 0);
+          background: linear-gradient(135deg,#0d1117,#0f2027);
+          display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+          <p style="font-size:1.4em;font-weight:800;color:var(--accent2);">🔬 現實真相</p>
+          <ul style="font-size:0.45em;color:#bbb;list-style:none;text-align:center;line-height:2.2;">
+            <li>資料申請→法院授權→漫長比對</li>
+            <li>人臉辨識誤判率仍達 5–30%</li>
+            <li>加密通訊常常無法破解</li>
+            <li>預測模型存在嚴重偏差問題</li>
+          </ul>
+        </div>
+        <div id="viz-divider" style="
+          position:absolute;top:0;left:0;width:3px;height:100%;
+          background:linear-gradient(to bottom,transparent,#4fc3f7,transparent);
+          box-shadow:0 0 12px #4fc3f7;pointer-events:none;"></div>
+      </div>
+      <input id="viz-slider" type="range" min="0" max="100" value="0"
+             style="width:100%;margin-top:12px;accent-color:var(--accent2);">
+    </section>
+
+    <!-- ==================== P4 現代犯罪樣貌 ==================== -->
+    <section data-background-image="images/crime_data.png"
+             data-background-opacity="0.18"
+             data-background-size="cover">
+      <h2>現代犯罪的樣貌</h2>
+      <div class="stat-row">
+        <div class="stat-card fragment">
+          <div class="num">93<span style="font-size:0.5em">%</span></div>
+          <div class="label">詐騙案件涉及數位工具<br>（2024 台灣）</div>
+        </div>
+        <div class="stat-card fragment">
+          <div class="num">8<span style="font-size:0.5em">兆</span></div>
+          <div class="label">全球網路犯罪年損失<br>（美元，2023）</div>
+        </div>
+        <div class="stat-card fragment">
+          <div class="num">72<span style="font-size:0.5em">%</span></div>
+          <div class="label">重大案件仰賴數位證據<br>（美國 FBI 統計）</div>
+        </div>
+      </div>
+      <p class="fragment" style="font-size:0.42em;color:#aaa;margin-top:1em;text-align:center;">
+        ▶ 犯罪現場早已不限於現實空間——數據就是新型物證
+      </p>
+    </section>
+
+    <!-- ==================== P5 什麼是科技偵查 ==================== -->
+    <section>
+      <h2>什麼是「科技偵查」？</h2>
+      <div class="quote-box">
+        科技偵查，是指執法機關運用數位技術、AI 工具與大數據分析，<br>
+        協助蒐集證據、鎖定嫌疑人、還原犯罪事實的偵查方式。
+        <div class="quote-author">— 廣義定義</div>
+      </div>
+      <div class="adv-grid fragment" style="margin-top:0.8em;">
+        <div class="adv-card">
+          <div class="adv-title">數位鑑識</div>
+          <div class="adv-desc">還原手機、電腦、雲端中的數位證據</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-title">AI 辨識</div>
+          <div class="adv-desc">人臉、聲紋、影像、行為模式自動比對</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-title">大數據分析</div>
+          <div class="adv-desc">海量資料中找出犯罪模式與關聯</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-title">網路追蹤</div>
+          <div class="adv-desc">IP、元數據、社群足跡定位嫌疑人</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P6 演進時間軸 ==================== -->
+    <section>
+      <h2>科技偵查演進時間軸</h2>
+      <div class="timeline">
+        <div class="timeline-item fragment">
+          <div class="ti-date">1980s</div>
+          <div class="ti-text">DNA 鑑定技術問世，首次用於刑事案件</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">1990s</div>
+          <div class="ti-text">電話監聽合法化、CCTV 監控網路擴張</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2000s</div>
+          <div class="ti-text">數位鑑識成立、手機 GPS 追蹤、IP 追查</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2010s</div>
+          <div class="ti-text">社群媒體 OSINT、大數據分析、科技偵查立法討論</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2020s</div>
+          <div class="ti-text">生成式 AI、Deepfake 偵測、自動影像分析、AI 法規爭議</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P7 三大武器 ==================== -->
+    <section>
+      <h2>AI 偵查的武器</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:1em;">
+        <div class="adv-card fragment">
+          <div class="adv-icon">📍</div>
+          <div class="adv-title">數位足跡</div>
+          <div class="adv-desc">手機定位、IP 紀錄、社群元數據</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🔍</div>
+          <div class="adv-title">OSINT 開源情報</div>
+          <div class="adv-desc">公開資料蒐集、社群分析、地理定位</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">📊</div>
+          <div class="adv-title">資料分析</div>
+          <div class="adv-desc">大數據比對、犯罪模式識別、風險評估</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P10 數位足跡 ==================== -->
+    <section>
+      <h2>武器：數位足跡追蹤</h2>
+      <div class="vs-grid">
+        <div class="vs-col left-col">
+          <div class="vs-label left">你以為消失的痕跡</div>
+          <ul>
+            <li>刪除的訊息</li>
+            <li>私人模式瀏覽紀錄</li>
+            <li>關掉位置的手機</li>
+            <li>假名帳號</li>
+          </ul>
+        </div>
+        <div class="vs-center">VS</div>
+        <div class="vs-col right-col">
+          <div class="vs-label right">實際仍留下的痕跡</div>
+          <ul>
+            <li>伺服器快取與日誌</li>
+            <li>ISP 連線紀錄（IP + 時間）</li>
+            <li>基地台三角定位</li>
+            <li>元數據（發文時間、裝置型號）</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P11 你留下什麼足跡 投票 ==================== -->
+    <section id="slide-poll1">
+      <h2><span class="live-dot"></span>你每天產生多少數位資料？</h2>
+      <p style="font-size:0.48em;color:#aaa;">猜猜看你一天的手機使用大約產生多少可被追蹤的數據</p>
+      <div class="interact-box">
+        <div class="poll-options" id="poll1-options">
+          <button class="poll-btn" onclick="pollVote('poll1',0)">
+            <span>😎 不到 1 MB，我很低調</span><span class="badge badge-blue" id="p1-c0">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll1',1)">
+            <span>📱 1–100 MB，普通使用者</span><span class="badge badge-blue" id="p1-c1">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll1',2)">
+            <span>🔥 100 MB–1 GB，重度用戶</span><span class="badge badge-blue" id="p1-c2">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll1',3)">
+            <span>🤯 超過 1 GB，我就是數據礦</span><span class="badge badge-blue" id="p1-c3">0票</span>
+          </button>
+        </div>
+        <p style="font-size:0.38em;color:#666;margin-top:12px;text-align:center;">
+          答案：智慧型手機用戶平均每天產生 1.7 GB 可追蹤數位資料（IDC 2023）
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== P13 資料分析 ==================== -->
+    <section data-background-image="images/predict.png"
+             data-background-opacity="0.18"
+             data-background-size="cover">
+      <h2>武器：資料分析</h2>
+      <p style="font-size:0.5em;color:#aaa;">Big Data Analysis — 從海量數據中找出犯罪模式與關聯</p>
+      <div class="adv-grid" style="margin-top:0.8em;">
+        <div class="adv-card fragment">
+          <div class="adv-icon">🗂️</div>
+          <div class="adv-title">犯罪模式識別</div>
+          <div class="adv-desc">跨案比對手法、時間、地點，發現連續犯罪關聯</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🕸️</div>
+          <div class="adv-title">關係網絡分析</div>
+          <div class="adv-desc">通聯紀錄、金流、社群關係圖，鎖定共犯結構</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">💰</div>
+          <div class="adv-title">金流追蹤</div>
+          <div class="adv-desc">異常交易偵測、虛擬貨幣溯源、洗錢路徑還原</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">⚠️</div>
+          <div class="adv-title">風險評估</div>
+          <div class="adv-desc">累犯預測模型、詐騙帳戶預警、高風險族群識別</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P15 台灣現況 ==================== -->
+    <section>
+      <h2>台灣的科技偵查現況</h2>
+      <div class="timeline">
+        <div class="timeline-item fragment">
+          <div class="ti-date">2020</div>
+          <div class="ti-text">刑事局成立「數位鑑識中心」，專責電子證據蒐集與分析</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2021</div>
+          <div class="ti-text">《科技偵查及保護法》草案提出，引發人權爭議暫緩</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2022–23</div>
+          <div class="ti-text">警政署試辦 AI 人臉辨識輔助系統（適用重大案件）</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2024</div>
+          <div class="ti-text">詐騙犯罪防制條例上路，強化數位資產追查權限</div>
+        </div>
+        <div class="timeline-item fragment">
+          <div class="ti-date">2025–</div>
+          <div class="ti-text">生成式 AI 偵測工具導入；科偵法修正版再次討論中</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P16 Deepfake ==================== -->
+    <section data-background-image="images/deepfake.png"
+             data-background-opacity="0.2"
+             data-background-size="cover">
+      <h2>深偽（Deepfake）與反偵查</h2>
+      <div class="vs-grid">
+        <div class="vs-col left-col">
+          <div class="vs-label left">⚔ AI 造假</div>
+          <ul>
+            <li>換臉影片欺騙人臉辨識</li>
+            <li>AI 複製聲音逃過聲紋比對</li>
+            <li>偽造數位證據（照片、影片）</li>
+            <li>生成假身份文件</li>
+          </ul>
+        </div>
+        <div class="vs-center">🛡</div>
+        <div class="vs-col right-col">
+          <div class="vs-label right">🔍 AI 識假</div>
+          <ul>
+            <li>偵測臉部不自然閃爍、邊緣</li>
+            <li>聲紋頻譜異常分析</li>
+            <li>元數據一致性驗證</li>
+            <li>區塊鏈影像存證</li>
+          </ul>
+        </div>
+      </div>
+      <p class="fragment" style="font-size:0.42em;color:#aaa;text-align:center;margin-top:0.8em;">
+        ▶ 這是一場沒有終點的軍備競賽——攻守雙方都在用 AI
+      </p>
+    </section>
+
+    <!-- ==================== P17 OSINT ==================== -->
+    <section>
+      <h2>OSINT：開源情報偵查</h2>
+      <div class="quote-box">
+        Open Source Intelligence（OSINT）— 從公開可取得的資訊中，<br>
+        系統性蒐集、整合、分析情報的技術。
+      </div>
+      <div class="adv-grid fragment" style="margin-top:0.8em;">
+        <div class="adv-card">
+          <div class="adv-icon">🌐</div>
+          <div class="adv-title">社群媒體</div>
+          <div class="adv-desc">Facebook、IG、X 的公開貼文、打卡、標記</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">🗺️</div>
+          <div class="adv-title">地圖衛星</div>
+          <div class="adv-desc">Google Maps 歷史影像、街景定位犯罪現場</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">🔍</div>
+          <div class="adv-title">網路資料庫</div>
+          <div class="adv-desc">WHOIS、Shodan、公司登記、法院資料</div>
+        </div>
+        <div class="adv-card">
+          <div class="adv-icon">📡</div>
+          <div class="adv-title">數位足跡</div>
+          <div class="adv-desc">論壇ID交叉比對、帳號關聯分析</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P18 OSINT 工具 ==================== -->
+    <section>
+      <h2>OSINT 工具盤點</h2>
+      <table>
+        <tr>
+          <th>工具</th>
+          <th>用途</th>
+          <th>使用者</th>
+        </tr>
+        <tr class="fragment">
+          <td><strong>Maltego</strong></td>
+          <td>視覺化關係圖、實體連結分析</td>
+          <td><span class="badge badge-blue">執法機關</span></td>
+        </tr>
+        <tr class="fragment">
+          <td><strong>Shodan</strong></td>
+          <td>搜尋聯網裝置、IoT 漏洞探查</td>
+          <td><span class="badge badge-warn">研究者</span></td>
+        </tr>
+        <tr class="fragment">
+          <td><strong>Google Dork</strong></td>
+          <td>進階搜尋語法、找出隱藏資料</td>
+          <td><span class="badge badge-green">公開可用</span></td>
+        </tr>
+        <tr class="fragment">
+          <td><strong>Bellingcat Toolkit</strong></td>
+          <td>地理定位、影像核實</td>
+          <td><span class="badge badge-blue">調查記者</span></td>
+        </tr>
+        <tr class="fragment">
+          <td><strong>SpiderFoot</strong></td>
+          <td>自動化目標情報蒐集</td>
+          <td><span class="badge badge-warn">資安專家</span></td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ==================== P19 道德爭議 VIZ ==================== -->
+    <section>
+      <h2>道德爭議：安全 vs 隱私</h2>
+      <p style="font-size:0.45em;color:#aaa;">拉動滑桿，從「完全監控」到「完全隱私」</p>
+      <div class="viz-slider-wrap" id="ethics-wrap">
+        <div id="ethics-before" style="
+          position:absolute;inset:0;
+          background: linear-gradient(135deg,#0d2137,#0a1628);
+          display:flex;align-items:center;padding:30px;gap:0;flex-direction:column;justify-content:center;">
+          <p style="color:var(--accent2);font-weight:800;font-size:1.2em;margin-bottom:16px;">🛡 全面監控派</p>
+          <ul style="font-size:0.42em;color:#bbb;list-style:none;line-height:2.2;text-align:left;">
+            <li>✦ 犯罪率大幅下降</li>
+            <li>✦ 恐怖攻擊提前預防</li>
+            <li>✦ 失蹤人口快速尋獲</li>
+            <li>✦ 政府可有效執法</li>
+          </ul>
+        </div>
+        <div id="ethics-after" style="
+          position:absolute;inset:0;clip-path:inset(0 100% 0 0);
+          background: linear-gradient(135deg,#1a0a00,#2d1200);
+          display:flex;align-items:center;padding:30px;flex-direction:column;justify-content:center;">
+          <p style="color:var(--warn);font-weight:800;font-size:1.2em;margin-bottom:16px;">🔐 隱私至上派</p>
+          <ul style="font-size:0.42em;color:#bbb;list-style:none;line-height:2.2;text-align:left;">
+            <li>✦ 無辜者遭錯誤監控</li>
+            <li>✦ 政治異見者被壓制</li>
+            <li>✦ 人民自我審查行為</li>
+            <li>✦ 資料外洩風險極高</li>
+          </ul>
+        </div>
+        <div id="ethics-divider" style="
+          position:absolute;top:0;left:0;width:3px;height:100%;
+          background:linear-gradient(to bottom,transparent,#e8643a,transparent);
+          box-shadow:0 0 12px #e8643a;pointer-events:none;"></div>
+      </div>
+      <input id="ethics-slider" type="range" min="0" max="100" value="0"
+             style="width:100%;margin-top:12px;accent-color:var(--accent);">
+    </section>
+
+    <!-- ==================== P20 AI 能定罪嗎 ==================== -->
+    <section>
+      <h2>大哉問：AI 判斷可以定罪嗎？</h2>
+      <div class="conclusion-grid">
+        <div class="conclusion-card positive">
+          <div class="cc-title">支持方觀點</div>
+          <ul>
+            <li>人類法官也有偏見</li>
+            <li>AI 處理資料更快更一致</li>
+            <li>減少人為疏失與腐敗</li>
+            <li>可作為輔助決策工具</li>
+          </ul>
+        </div>
+        <div class="conclusion-card caution">
+          <div class="cc-title">反對方觀點</div>
+          <ul>
+            <li>黑盒子：無法解釋推理過程</li>
+            <li>訓練資料帶有歷史偏見</li>
+            <li>無法理解脈絡與人性</li>
+            <li>定罪需要正當程序保障</li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote-box fragment">
+        歐盟《AI 法案》（2024）明確規定：AI 不得作為刑事判決的<strong>唯一依據</strong>。
+      </div>
+    </section>
+
+    <!-- ==================== P21 投票 ==================== -->
+    <section id="slide-poll2">
+      <h2><span class="live-dot"></span>你支持哪種程度的監控？</h2>
+      <div class="interact-box">
+        <div class="poll-options" id="poll2-options">
+          <button class="poll-btn" onclick="pollVote('poll2',0)">
+            <span>🚫 完全反對：隱私是基本人權，不容妥協</span>
+            <span class="badge badge-blue" id="p2-c0">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll2',1)">
+            <span>⚖️ 有限監控：嚴格法律授權下，僅限重大犯罪</span>
+            <span class="badge badge-blue" id="p2-c1">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll2',2)">
+            <span>🔍 廣泛監控：公共安全優先，公開場所可監控</span>
+            <span class="badge badge-blue" id="p2-c2">0票</span>
+          </button>
+          <button class="poll-btn" onclick="pollVote('poll2',3)">
+            <span>📡 全面監控：安全比隱私重要，我沒在怕</span>
+            <span class="badge badge-blue" id="p2-c3">0票</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P22 各國法規 ==================== -->
+    <section>
+      <h2>各國 AI 偵查法規比較</h2>
+      <table>
+        <tr>
+          <th>地區</th>
+          <th>法規框架</th>
+          <th>人臉辨識</th>
+          <th>態度</th>
+        </tr>
+        <tr class="fragment">
+          <td>🇪🇺 歐盟</td>
+          <td>AI 法案（2024 生效）</td>
+          <td>公共場所幾乎全禁</td>
+          <td><span class="badge badge-green">嚴格保護</span></td>
+        </tr>
+        <tr class="fragment">
+          <td>🇺🇸 美國</td>
+          <td>各州自行立法</td>
+          <td>部分城市全禁</td>
+          <td><span class="badge badge-warn">分歧</span></td>
+        </tr>
+        <tr class="fragment">
+          <td>🇨🇳 中國</td>
+          <td>網絡安全法、數據安全法</td>
+          <td>大規模部署</td>
+          <td><span class="badge badge-red">全面監控</span></td>
+        </tr>
+        <tr class="fragment">
+          <td>🇹🇼 台灣</td>
+          <td>科偵法草案（爭議中）</td>
+          <td>試辦、法源未定</td>
+          <td><span class="badge badge-blue">討論中</span></td>
+        </tr>
+      </table>
+    </section>
+
+    <!-- ==================== P23 AI 偵查的天花板 ==================== -->
+    <section>
+      <h2>AI 偵查的天花板</h2>
+      <div class="adv-grid">
+        <div class="adv-card fragment">
+          <div class="adv-icon">🎭</div>
+          <div class="adv-title">誤判問題</div>
+          <div class="adv-desc">暗處、口罩、老化、雙胞胎都會讓人臉辨識失準</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">⚖️</div>
+          <div class="adv-title">法律地位</div>
+          <div class="adv-desc">AI 輸出能否作為法庭證據？各國尚無定論</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🧠</div>
+          <div class="adv-title">無法理解脈絡</div>
+          <div class="adv-desc">AI 看數據，不懂人性、動機、社會背景</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🔐</div>
+          <div class="adv-title">加密的牆</div>
+          <div class="adv-desc">端對端加密通訊（Signal 等）目前無法破解</div>
+        </div>
+      </div>
+      <p class="fragment" style="font-size:0.42em;color:#aaa;text-align:center;margin-top:0.8em;">
+        ▶ AI 是強力輔助工具，但無法取代有智慧的偵查員
+      </p>
+    </section>
+
+    <!-- ==================== P24 未來五年 ==================== -->
+    <section data-background-image="images/future.png"
+             data-background-opacity="0.25"
+             data-background-size="cover">
+      <h2>未來五年的偵查想像</h2>
+      <div class="adv-grid">
+        <div class="adv-card fragment">
+          <div class="adv-icon">🚁</div>
+          <div class="adv-title">自主無人機偵查</div>
+          <div class="adv-desc">AI 驅動無人機自主追蹤嫌疑人、現場蒐證</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🔐</div>
+          <div class="adv-title">量子解密</div>
+          <div class="adv-desc">量子電腦破解現有加密標準，改寫數位隱私格局</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🧬</div>
+          <div class="adv-title">多模態 AI 鑑識</div>
+          <div class="adv-desc">同時分析聲音、影像、文字、位置的統一 AI 模型</div>
+        </div>
+        <div class="adv-card fragment">
+          <div class="adv-icon">🌐</div>
+          <div class="adv-title">跨境即時協作</div>
+          <div class="adv-desc">國際刑警組織 AI 平台，打擊跨國網路犯罪</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P26 課後反思文字雲 ==================== -->
+    <section id="slide-reflect">
+      <h2><span class="live-dot"></span>課後反思</h2>
+      <p style="font-size:0.5em; color:#aaa; margin-bottom:0.6em;">上完這堂課，你最想說的一個詞是什麼？</p>
+      <div style="display:grid;grid-template-columns:1fr 160px;gap:16px;align-items:start;">
+        <div>
+          <canvas id="wc2-canvas" width="700" height="260"
+                  style="width:100%;border-radius:8px;background:rgba(0,0,0,0.3);display:block;"></canvas>
+          <div class="interact-input" style="margin-top:10px;">
+            <input id="wc2-input" type="text" placeholder="或在此直接輸入…" maxlength="12" />
+            <button onclick="wcSubmit('reflect')">送出</button>
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.38em;color:var(--accent2);font-weight:700;margin-bottom:8px;letter-spacing:0.06em;">用手機掃描</div>
+          <div id="qr-reflect" style="border-radius:8px;background:#fff;padding:6px;width:140px;height:140px;display:flex;align-items:center;justify-content:center;margin:0 auto;"></div>
+          <div style="font-size:0.32em;color:#666;margin-top:8px;" id="qr-url-reflect">連線中…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== P28 封底 ==================== -->
+    <section data-background-image="images/ending.png"
+             data-background-opacity="0.35"
+             data-background-size="cover">
+      <div class="end-slide">
+        <h1 style="color:var(--accent2);">Q &amp; A</h1>
+      </div>
+    </section>
+
+  </div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    transition: 'slide',
+    transitionSpeed: 'default',
+    backgroundTransition: 'fade',
+    center: true,
+    progress: true,
+    controls: true,
+    slideNumber: 'c/t',
+    plugins: []
+  });
+
+  /* ===== VIZ 滑桿（影視 vs 現實）===== */
+  document.getElementById('viz-slider').addEventListener('input', function() {
+    const v = +this.value;
+    document.getElementById('viz-after').style.clipPath = `inset(0 ${100-v}% 0 0)`;
+    document.getElementById('viz-divider').style.left = v + '%';
+  });
+
+  /* ===== VIZ 滑桿（安全 vs 隱私）===== */
+  document.getElementById('ethics-slider').addEventListener('input', function() {
+    const v = +this.value;
+    document.getElementById('ethics-after').style.clipPath = `inset(0 ${100-v}% 0 0)`;
+    document.getElementById('ethics-divider').style.left = v + '%';
+  });
+
+  /* ===== Firebase 文字雲（Enter 鍵）===== */
+  document.getElementById('wc-input').addEventListener('keydown',  e => { if (e.key==='Enter') wcFirebaseSubmit('icebreak'); });
+  document.getElementById('wc2-input').addEventListener('keydown', e => { if (e.key==='Enter') wcFirebaseSubmit('reflect'); });
+
+  /* ===== 投票（本地版）===== */
+  const pollState = {
+    poll1: { votes: [0,0,0,0], myVote: -1 },
+    poll2: { votes: [0,0,0,0], myVote: -1 },
+  };
+
+  function pollVote(pollId, idx) {
+    const state = pollState[pollId];
+    if (state.myVote === idx) return;
+    if (state.myVote >= 0) state.votes[state.myVote]--;
+    state.myVote = idx;
+    state.votes[idx]++;
+    renderPoll(pollId);
+  }
+
+  function renderPoll(pollId) {
+    const state = pollState[pollId];
+    const total = state.votes.reduce((a, b) => a + b, 0);
+    const prefix = pollId === 'poll1' ? 'p1' : 'p2';
+    state.votes.forEach((v, i) => {
+      const el = document.getElementById(`${prefix}-c${i}`);
+      if (el) el.textContent = `${v}票`;
+    });
+    const btns = document.querySelectorAll(`#${pollId}-options .poll-btn`);
+    btns.forEach((btn, i) => {
+      btn.classList.toggle('selected', i === state.myVote);
+    });
+  }
+</script>
+</body>
+</html>
