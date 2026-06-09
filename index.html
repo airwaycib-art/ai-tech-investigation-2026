@@ -12,7 +12,8 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp }
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp,
+             getDocs, deleteDoc, doc }
       from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -60,6 +61,16 @@
         renderWordCloud(CANVAS[room], counts);
       });
     });
+
+    // 清空文字雲（兩個集合）
+    window.wcClearAll = async function() {
+      if (!confirm('確定要清空所有文字雲內容？')) return;
+      for (const colName of Object.values(COLS)) {
+        const snap = await getDocs(collection(db, colName));
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, colName, d.id))));
+      }
+      alert('✅ 文字雲已清空！');
+    };
 
     // 讓非 module 的 onclick 可呼叫
     window.wcFirebaseSubmit = async function(room) {
@@ -1158,6 +1169,16 @@
         position: fixed; inset: 0; z-index: 9997; display: none;
       }
       #nav-overlay.show { display: block; }
+      #nav-clear-btn {
+        display: block; width: 100%; margin-top: 14px;
+        padding: 10px; border-radius: 8px;
+        background: rgba(232,100,58,0.12);
+        border: 1px solid rgba(232,100,58,0.4);
+        color: #e8643a; font-size: 12px; font-weight: 700;
+        cursor: pointer; letter-spacing: 0.05em;
+        transition: background 0.15s;
+      }
+      #nav-clear-btn:hover { background: rgba(232,100,58,0.28); }
     `;
     document.head.appendChild(style);
 
@@ -1186,7 +1207,7 @@
       slides.map(([n, t]) =>
         `<button class="nav-btn" onclick="navGo(${n-1})"><span class="n">${n}</span>${t}</button>`
       ).join('')
-    }</div>`;
+    }</div><button id="nav-clear-btn" onclick="wcClearAll()">🗑 清空文字雲內容</button>`;
     document.body.appendChild(panel);
 
     window.navGo = function(idx) { Reveal.slide(idx); closeNav(); };
