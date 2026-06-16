@@ -10,12 +10,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
-    // AI 科技偵查簡報 — 文字雲集合
+    // AI 科技偵查簡報 — 文字雲集合（暫時關閉，非上課期間。下次上課前改回 if true）
     match /aitechdet_wordcloud/{document} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
     match /aitechdet_reflect/{document} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
 
     match /{document=**} {
