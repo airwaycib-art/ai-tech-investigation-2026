@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
@@ -164,6 +165,163 @@
       width: 56px; height: 56px; object-fit: contain;
       display: block; margin: 0 auto;
       filter: drop-shadow(0 0 10px rgba(79,195,247,0.6));
+    }
+    .official-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 10px;
+      padding: 8px 12px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+    }
+    .official-mark.dark {
+      background: rgba(5,16,34,0.78);
+      border-color: rgba(255,255,255,0.16);
+    }
+    .official-mark img {
+      display: block;
+      width: auto;
+      height: 52px;
+      object-fit: contain;
+      filter: none;
+    }
+    .official-mark.emblem {
+      padding: 8px;
+      border-radius: 50%;
+    }
+    .official-mark.emblem img { height: 74px; }
+    .slide-mark-corner {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      z-index: 2;
+    }
+    .asset-shot {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 8px;
+      box-shadow: 0 18px 44px rgba(0,0,0,0.32);
+      overflow: hidden;
+    }
+    .asset-shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 9px;
+      object-fit: cover;
+    }
+    .asset-mini {
+      width: 78px;
+      height: 78px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 8px;
+      filter: none;
+    }
+    .ai-visual-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(300px, 0.94fr);
+      gap: 20px;
+      align-items: stretch;
+      margin-top: 0.25em;
+    }
+    .ai-visual-panel {
+      border-radius: 16px;
+      border: 1px solid rgba(79,195,247,0.28);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      box-shadow: 0 22px 54px rgba(0,0,0,0.34);
+      overflow: hidden;
+      min-height: 260px;
+    }
+    .ai-visual-panel img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      object-fit: cover;
+      filter: saturate(0.92) contrast(1.04);
+    }
+    .ai-visual-strip {
+      margin-top: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(79,195,247,0.22);
+      overflow: hidden;
+      height: 230px;
+      box-shadow: 0 18px 46px rgba(0,0,0,0.3);
+    }
+    .ai-visual-strip img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: saturate(0.95) contrast(1.03);
+    }
+    .ai-visual-strip.compact {
+      height: 180px;
+      margin-top: 14px;
+      opacity: 0.82;
+    }
+    .chart-panel {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));
+      border: 1px solid rgba(79,195,247,0.24);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0,0,0,0.28);
+      overflow: hidden;
+    }
+    .chart-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 34px 34px;
+      pointer-events: none;
+      opacity: 0.32;
+    }
+    .chart-title {
+      position: absolute;
+      left: 14px;
+      top: 10px;
+      z-index: 1;
+      color: rgba(255,255,255,0.76);
+      font-size: 0.34em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .chart-canvas {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      min-height: 160px;
+    }
+    .chart-strip {
+      height: 176px;
+      margin-top: 16px;
+    }
+    .chart-side-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.82fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 0.65em;
+    }
+    .chart-side-layout .adv-grid,
+    .chart-side-layout .timeline {
+      margin-top: 0;
+    }
+    .chart-side {
+      min-height: 330px;
+    }
+    .chart-under-table {
+      height: 148px;
+      margin-top: 14px;
     }
     .adv-card .adv-title { font-size: 0.5em; font-weight: 700; color: var(--accent2); margin-bottom: 6px; }
     .adv-card .adv-desc  { font-size: 0.4em; color: #ccc; line-height: 1.6; }
@@ -332,6 +490,167 @@
       background: #f44; border-radius: 50%;
       animation: pulse 1.5s infinite; margin-right: 6px;
     }
+
+    /* === Creative Director pass: Clean Briefing + dossier discipline === */
+    :root {
+      --briefing-navy: #071832;
+      --briefing-ink: #e8eef7;
+      --briefing-muted: #aeb9c8;
+      --dossier-paper: #efe2c4;
+      --dossier-ink: #1f2430;
+      --line-soft: rgba(255,255,255,0.14);
+      --panel-blue: rgba(7,24,50,0.78);
+    }
+
+    .reveal {
+      color: var(--briefing-ink);
+      background:
+        radial-gradient(circle at 18% 14%, rgba(79,195,247,0.13), transparent 28%),
+        radial-gradient(circle at 82% 78%, rgba(232,100,58,0.10), transparent 24%),
+        linear-gradient(135deg, #06142c 0%, #0a1f44 48%, #08182f 100%);
+    }
+
+    .reveal .slides section {
+      text-shadow: 0 2px 18px rgba(0,0,0,0.34);
+    }
+
+    .reveal .slides section::after {
+      content: "";
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      bottom: 5%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,100,58,0.72), rgba(79,195,247,0.45), transparent);
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    .reveal h1,
+    .reveal h2 {
+      text-wrap: balance;
+    }
+
+    .reveal h2 {
+      position: relative;
+      display: inline-block;
+      padding-bottom: 0.16em;
+      color: #8fd8ff;
+    }
+
+    .reveal h2::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 48%;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 99px;
+      box-shadow: 0 0 18px rgba(232,100,58,0.45);
+    }
+
+    .title-slide h1 {
+      letter-spacing: 0.02em;
+      line-height: 1.08;
+      filter: drop-shadow(0 18px 38px rgba(0,0,0,0.72));
+    }
+
+    .title-slide .author {
+      display: inline-block;
+      margin-top: 1.35em;
+      padding: 6px 18px;
+      border: 1px solid rgba(232,100,58,0.55);
+      border-radius: 999px;
+      color: #f4c0ad;
+      background: rgba(7,24,50,0.62);
+      letter-spacing: 0.1em;
+    }
+
+    .stat-card,
+    .adv-card,
+    .vs-col,
+    .interact-box,
+    .conclusion-card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035)),
+        var(--panel-blue);
+      border: 1px solid var(--line-soft);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.22);
+      backdrop-filter: blur(10px);
+    }
+
+    .adv-card {
+      border-top-width: 2px;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .adv-card:hover,
+    .poll-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .quote-box {
+      position: relative;
+      color: var(--dossier-ink);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0)),
+        var(--dossier-paper);
+      border: 1px solid rgba(31,36,48,0.18);
+      border-left: 8px solid var(--accent);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.28);
+      text-shadow: none;
+    }
+
+    .quote-box::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 1px dashed rgba(31,36,48,0.18);
+      pointer-events: none;
+    }
+
+    .quote-author {
+      color: rgba(31,36,48,0.68);
+    }
+
+    .timeline::before {
+      background: linear-gradient(180deg, rgba(232,100,58,0), rgba(232,100,58,0.75), rgba(79,195,247,0.65), rgba(232,100,58,0));
+    }
+
+    .timeline-item .ti-date {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+    }
+
+    .poll-btn {
+      min-height: 52px;
+    }
+
+    .poll-btn.selected {
+      box-shadow: inset 0 0 0 1px rgba(79,195,247,0.4), 0 16px 36px rgba(0,0,0,0.22);
+    }
+
+    .viz-slider-wrap {
+      border: 1px solid rgba(79,195,247,0.22);
+      box-shadow: 0 24px 54px rgba(0,0,0,0.32);
+    }
+
+    .reveal table {
+      overflow: hidden;
+      border-radius: 10px;
+      background: rgba(7,24,50,0.7);
+      box-shadow: 0 18px 48px rgba(0,0,0,0.24);
+    }
+
+    .reveal table th {
+      background: rgba(79,195,247,0.16);
+      letter-spacing: 0.04em;
+    }
+
+    .reveal .progress span {
+      box-shadow: 0 0 14px rgba(232,100,58,0.7);
+    }
   </style>
 </head>
 <body>
@@ -342,7 +661,7 @@
     <section data-background-image="images/cover.jpg" data-background-opacity="0.35" data-background-size="cover">
       <div class="title-slide">
         <h1>AI 時代下的<br>科技偵查</h1>
-        <p class="author">2026.07</p>
+        <p class="author">2026.06</p>
       </div>
     </section>
 
@@ -357,6 +676,9 @@
         </div>
         <!-- 文字區 -->
         <div>
+          <div class="official-mark" style="margin-bottom:14px;">
+            <img src="assets/official/cib-header.png" alt="內政部警政署刑事警察局全球資訊網">
+          </div>
           <div style="font-size:0.38em;color:var(--accent2);letter-spacing:0.1em;margin-bottom:6px;">TODAY'S SPEAKER</div>
           <h1 style="font-size:1.6em;margin:0 0 4px;">黃禎慶</h1>
           <p style="font-size:0.48em;color:#bbb;margin:0 0 20px;">Chen-Chin (Eric) Huang</p>
@@ -394,12 +716,15 @@
 
     <!-- ==================== P3 機關簡介 - 科技犯罪防制中心 ==================== -->
     <section data-background-image="images/cover.jpg" data-background-opacity="0.15">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:0.4em;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:0.4em;">
         <div style="
           background:rgba(232,100,58,0.15);border:1px solid rgba(232,100,58,0.4);
           border-radius:8px;padding:6px 14px;font-size:0.38em;color:var(--accent);
           font-weight:700;letter-spacing:0.06em;white-space:nowrap;">
           內政部警政署刑事警察局
+        </div>
+        <div class="official-mark" style="padding:6px 10px;">
+          <img src="assets/official/cib-header.png" alt="內政部警政署刑事警察局全球資訊網" style="height:42px;">
         </div>
       </div>
       <h2 style="margin-top:0;">科技犯罪防制中心</h2>
@@ -502,7 +827,7 @@
           <canvas id="wc-canvas" width="700" height="260" style="width:100%;border-radius:8px;background:rgba(0,0,0,0.3);display:block;"></canvas>
           <div class="interact-input" style="margin-top:10px;">
             <input id="wc-input" type="text" placeholder="或在此直接輸入…" maxlength="12">
-            <button onclick="wcSubmit('icebreak')">送出</button>
+            <button onclick="wcFirebaseSubmit('icebreak')">送出</button>
           </div>
         </div>
         <div style="text-align:center;">
@@ -566,6 +891,10 @@
           <div class="label">重大案件仰賴數位證據<br>（美國 FBI 統計）</div>
         </div>
       </div>
+      <div class="chart-panel chart-strip fragment">
+        <div class="chart-title">三個訊號：數位工具、犯罪損失、證據依賴</div>
+        <div id="chart-crime-signal" class="chart-canvas" aria-label="現代犯罪數據訊號圖"></div>
+      </div>
       <p class="fragment" style="font-size:0.42em;color:#ccc;margin-top:1em;text-align:center;">
         ▶ 犯罪現場早已不限於現實空間——數據就是新型物證
       </p>
@@ -574,10 +903,17 @@
     <!-- ==================== P5 什麼是科技偵查 ==================== -->
     <section>
       <h2>什麼是「科技偵查」？</h2>
-      <div class="quote-box">
-        科技偵查，是指執法機關運用數位技術、AI 工具與大數據分析，<br>
-        協助蒐集證據、鎖定嫌疑人、還原犯罪事實的偵查方式。
-        <div class="quote-author">— 廣義定義</div>
+      <div class="ai-visual-grid">
+        <div>
+          <div class="quote-box">
+            科技偵查，是指執法機關運用數位技術、AI 工具與大數據分析，<br>
+            協助蒐集證據、鎖定嫌疑人、還原犯罪事實的偵查方式。
+            <div class="quote-author">— 廣義定義</div>
+          </div>
+        </div>
+        <div class="ai-visual-panel">
+          <img src="assets/generated/ai-tech-definition_20260625_094715.png" alt="科技偵查指揮室與數位證據節點示意圖">
+        </div>
       </div>
       <div class="adv-grid fragment" style="margin-top:0.8em;">
         <div class="adv-card">
@@ -600,7 +936,7 @@
     </section>
 
     <!-- ==================== P6 演進時間軸 ==================== -->
-    <section>
+    <section data-background-image="assets/generated/ai-tech-timeline_20260625_094803.png" data-background-opacity="0.18" data-background-size="cover">
       <h2>科技偵查演進時間軸</h2>
       <div class="timeline">
         <div class="timeline-item fragment">
@@ -629,6 +965,9 @@
     <!-- ==================== P7 三大武器 ==================== -->
     <section>
       <h2>AI 偵查的武器</h2>
+      <div class="ai-visual-strip">
+        <img src="assets/generated/ai-investigation-tools_20260625_094835.png" alt="數位足跡、開源情報與資料分析三種 AI 偵查工具示意圖">
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:1em;">
         <div class="adv-card fragment">
           <div class="adv-icon"><i class="fa-solid fa-location-crosshairs fa-fw"></i></div>
@@ -672,6 +1011,9 @@
           </ul>
         </div>
       </div>
+      <div class="ai-visual-strip compact">
+        <img src="assets/generated/digital-footprint-tracing_20260625_094908.png" alt="手機定位、基地台與伺服器日誌形成數位足跡的示意圖">
+      </div>
     </section>
 
     <!-- ==================== P11 你留下什麼足跡 投票 ==================== -->
@@ -703,26 +1045,32 @@
     <section data-background-image="images/predict.jpg" data-background-opacity="0.18" data-background-size="cover">
       <h2>武器：資料分析</h2>
       <p style="font-size:0.5em;color:#ccc;">Big Data Analysis — 從海量數據中找出犯罪模式與關聯</p>
-      <div class="adv-grid" style="margin-top:0.8em;">
-        <div class="adv-card fragment">
-          <div class="adv-icon"><i class="fa-solid fa-folder-tree fa-fw"></i></div>
-          <div class="adv-title">犯罪模式識別</div>
-          <div class="adv-desc">跨案比對手法、時間、地點，發現連續犯罪關聯</div>
+      <div class="chart-side-layout">
+        <div class="adv-grid">
+          <div class="adv-card fragment">
+            <div class="adv-icon"><i class="fa-solid fa-folder-tree fa-fw"></i></div>
+            <div class="adv-title">犯罪模式識別</div>
+            <div class="adv-desc">跨案比對手法、時間、地點，發現連續犯罪關聯</div>
+          </div>
+          <div class="adv-card fragment">
+            <div class="adv-icon"><i class="fa-solid fa-diagram-project fa-fw"></i></div>
+            <div class="adv-title">關係網絡分析</div>
+            <div class="adv-desc">通聯紀錄、金流、社群關係圖，鎖定共犯結構</div>
+          </div>
+          <div class="adv-card fragment">
+            <div class="adv-icon"><i class="fa-solid fa-sack-dollar fa-fw"></i></div>
+            <div class="adv-title">金流追蹤</div>
+            <div class="adv-desc">異常交易偵測、虛擬貨幣溯源、洗錢路徑還原</div>
+          </div>
+          <div class="adv-card fragment">
+            <div class="adv-icon"><i class="fa-solid fa-circle-exclamation fa-fw"></i></div>
+            <div class="adv-title">風險評估</div>
+            <div class="adv-desc">累犯預測模型、詐騙帳戶預警、高風險族群識別</div>
+          </div>
         </div>
-        <div class="adv-card fragment">
-          <div class="adv-icon"><i class="fa-solid fa-diagram-project fa-fw"></i></div>
-          <div class="adv-title">關係網絡分析</div>
-          <div class="adv-desc">通聯紀錄、金流、社群關係圖，鎖定共犯結構</div>
-        </div>
-        <div class="adv-card fragment">
-          <div class="adv-icon"><i class="fa-solid fa-sack-dollar fa-fw"></i></div>
-          <div class="adv-title">金流追蹤</div>
-          <div class="adv-desc">異常交易偵測、虛擬貨幣溯源、洗錢路徑還原</div>
-        </div>
-        <div class="adv-card fragment">
-          <div class="adv-icon"><i class="fa-solid fa-circle-exclamation fa-fw"></i></div>
-          <div class="adv-title">風險評估</div>
-          <div class="adv-desc">累犯預測模型、詐騙帳戶預警、高風險族群識別</div>
+        <div class="chart-panel chart-side fragment">
+          <div class="chart-title">資料分析把線索連成網絡</div>
+          <div id="chart-data-network" class="chart-canvas" aria-label="資料分析關係網絡圖"></div>
         </div>
       </div>
     </section>
@@ -730,26 +1078,32 @@
     <!-- ==================== P15 台灣現況 ==================== -->
     <section data-background-image="images/predict.jpg" data-background-opacity="0.15">
       <h2>台灣的科技偵查現況</h2>
-      <div class="timeline">
-        <div class="timeline-item fragment">
-          <div class="ti-date">2020</div>
-          <div class="ti-text">刑事局成立「數位鑑識中心」，專責電子證據蒐集與分析</div>
+      <div class="chart-side-layout">
+        <div class="timeline">
+          <div class="timeline-item fragment">
+            <div class="ti-date">2020</div>
+            <div class="ti-text">刑事局成立「數位鑑識中心」，專責電子證據蒐集與分析</div>
+          </div>
+          <div class="timeline-item fragment">
+            <div class="ti-date">2021</div>
+            <div class="ti-text">《科技偵查及保護法》草案提出，引發人權爭議暫緩</div>
+          </div>
+          <div class="timeline-item fragment">
+            <div class="ti-date">2022–23</div>
+            <div class="ti-text">警政署試辦 AI 人臉辨識輔助系統（適用重大案件）</div>
+          </div>
+          <div class="timeline-item fragment">
+            <div class="ti-date">2024</div>
+            <div class="ti-text">詐騙犯罪防制條例上路，強化數位資產追查權限</div>
+          </div>
+          <div class="timeline-item fragment">
+            <div class="ti-date">2025–</div>
+            <div class="ti-text">生成式 AI 偵測工具導入；科偵法修正版再次討論中</div>
+          </div>
         </div>
-        <div class="timeline-item fragment">
-          <div class="ti-date">2021</div>
-          <div class="ti-text">《科技偵查及保護法》草案提出，引發人權爭議暫緩</div>
-        </div>
-        <div class="timeline-item fragment">
-          <div class="ti-date">2022–23</div>
-          <div class="ti-text">警政署試辦 AI 人臉辨識輔助系統（適用重大案件）</div>
-        </div>
-        <div class="timeline-item fragment">
-          <div class="ti-date">2024</div>
-          <div class="ti-text">詐騙犯罪防制條例上路，強化數位資產追查權限</div>
-        </div>
-        <div class="timeline-item fragment">
-          <div class="ti-date">2025–</div>
-          <div class="ti-text">生成式 AI 偵測工具導入；科偵法修正版再次討論中</div>
+        <div class="chart-panel chart-side fragment">
+          <div class="chart-title">政策與工具成熟度</div>
+          <div id="chart-taiwan-timeline" class="chart-canvas" aria-label="台灣科技偵查政策與工具成熟度圖"></div>
         </div>
       </div>
     </section>
@@ -786,30 +1140,37 @@
     <!-- ==================== P17 OSINT ==================== -->
     <section>
       <h2>OSINT：開源情報偵查</h2>
-      <div class="quote-box">
-        Open Source Intelligence（OSINT）— 從公開可取得的資訊中，<br>
-        系統性蒐集、整合、分析情報的技術。
-      </div>
-      <div class="adv-grid fragment" style="margin-top:0.8em;">
-        <div class="adv-card">
-          <div class="adv-icon"><i class="fa-solid fa-globe fa-fw"></i></div>
-          <div class="adv-title">社群媒體</div>
-          <div class="adv-desc">Facebook、IG、X 的公開貼文、打卡、標記</div>
+      <div style="display:grid;grid-template-columns:1.25fr 0.85fr;gap:18px;align-items:start;margin-top:0.5em;">
+        <div>
+          <div class="quote-box">
+            Open Source Intelligence（OSINT）— 從公開可取得的資訊中，<br>
+            系統性蒐集、整合、分析情報的技術。
+          </div>
+          <div class="adv-grid fragment" style="margin-top:0.8em;">
+            <div class="adv-card">
+              <div class="adv-icon"><i class="fa-solid fa-globe fa-fw"></i></div>
+              <div class="adv-title">社群媒體</div>
+              <div class="adv-desc">Facebook、IG、X 的公開貼文、打卡、標記</div>
+            </div>
+            <div class="adv-card">
+              <div class="adv-icon"><i class="fa-solid fa-map fa-fw"></i></div>
+              <div class="adv-title">地圖衛星</div>
+              <div class="adv-desc">Google Maps 歷史影像、街景定位犯罪現場</div>
+            </div>
+            <div class="adv-card">
+              <div class="adv-icon"><i class="fa-solid fa-database fa-fw"></i></div>
+              <div class="adv-title">網路資料庫</div>
+              <div class="adv-desc">WHOIS、Shodan、公司登記、法院資料</div>
+            </div>
+            <div class="adv-card">
+              <div class="adv-icon"><i class="fa-solid fa-fingerprint fa-fw"></i></div>
+              <div class="adv-title">數位足跡</div>
+              <div class="adv-desc">論壇ID交叉比對、帳號關聯分析</div>
+            </div>
+          </div>
         </div>
-        <div class="adv-card">
-          <div class="adv-icon"><i class="fa-solid fa-map fa-fw"></i></div>
-          <div class="adv-title">地圖衛星</div>
-          <div class="adv-desc">Google Maps 歷史影像、街景定位犯罪現場</div>
-        </div>
-        <div class="adv-card">
-          <div class="adv-icon"><i class="fa-solid fa-database fa-fw"></i></div>
-          <div class="adv-title">網路資料庫</div>
-          <div class="adv-desc">WHOIS、Shodan、公司登記、法院資料</div>
-        </div>
-        <div class="adv-card">
-          <div class="adv-icon"><i class="fa-solid fa-fingerprint fa-fw"></i></div>
-          <div class="adv-title">數位足跡</div>
-          <div class="adv-desc">論壇ID交叉比對、帳號關聯分析</div>
+        <div class="asset-shot fragment" style="margin-top:0.2em;">
+          <img src="assets/official/google-maps-agentic-ui.jpg" alt="Google Maps Platform agentic UI 官方產品截圖">
         </div>
       </div>
     </section>
@@ -940,6 +1301,10 @@
           <td><span class="badge badge-blue">討論中</span></td>
         </tr>
       </tbody></table>
+      <div class="chart-panel chart-under-table fragment">
+        <div class="chart-title">法規嚴格度與部署強度對照</div>
+        <div id="chart-regulation-matrix" class="chart-canvas" aria-label="各國 AI 偵查法規比較矩陣圖"></div>
+      </div>
     </section>
 
     <!-- ==================== P23 AI 偵查的天花板 ==================== -->
@@ -962,7 +1327,7 @@
           <div class="adv-desc">AI 看數據，不懂人性、動機、社會背景</div>
         </div>
         <div class="adv-card fragment">
-          <div class="adv-icon"><i class="fa-solid fa-lock fa-fw"></i></div>
+          <img class="asset-mini" src="assets/official/signal-logo-ultramarine.svg" alt="Signal 官方標誌">
           <div class="adv-title">加密的牆</div>
           <div class="adv-desc">端對端加密通訊（Signal 等）目前無法破解</div>
         </div>
@@ -1008,7 +1373,7 @@
           <canvas id="wc2-canvas" width="700" height="260" style="width:100%;border-radius:8px;background:rgba(0,0,0,0.3);display:block;"></canvas>
           <div class="interact-input" style="margin-top:10px;">
             <input id="wc2-input" type="text" placeholder="或在此直接輸入…" maxlength="12">
-            <button onclick="wcSubmit('reflect')">送出</button>
+            <button onclick="wcFirebaseSubmit('reflect')">送出</button>
           </div>
         </div>
         <div style="text-align:center;">
@@ -1091,6 +1456,185 @@
       btn.classList.toggle('selected', i === state.myVote);
     });
   }
+
+  /* ===== ECharts 論述圖表 ===== */
+  const deckCharts = [];
+  const chartText = 'rgba(255,255,255,0.72)';
+  const chartGrid = 'rgba(255,255,255,0.1)';
+  const chartBlue = '#4fc3f7';
+  const chartCoral = '#e8643a';
+  const chartWarn = '#ffb74d';
+  const chartGreen = '#81c784';
+
+  function mountDeckChart(id, option) {
+    const el = document.getElementById(id);
+    if (!el || !window.echarts) return;
+    const chart = echarts.init(el, null, { renderer: 'canvas' });
+    chart.setOption(option);
+    deckCharts.push(chart);
+  }
+
+  function initDeckCharts() {
+    if (!window.echarts) return;
+
+    mountDeckChart('chart-crime-signal', {
+      backgroundColor: 'transparent',
+      grid: { left: 36, right: 22, top: 46, bottom: 28 },
+      xAxis: {
+        type: 'category',
+        data: ['數位工具', '年損失', '數位證據'],
+        axisLabel: { color: chartText, fontSize: 11 },
+        axisLine: { lineStyle: { color: chartGrid } },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        max: 100,
+        splitLine: { lineStyle: { color: chartGrid } },
+        axisLabel: { color: 'rgba(255,255,255,0.42)', fontSize: 10, formatter: '{value}' }
+      },
+      series: [{
+        type: 'bar',
+        barWidth: 32,
+        data: [93, 80, 72],
+        itemStyle: {
+          borderRadius: [8, 8, 2, 2],
+          color: params => [chartCoral, chartWarn, chartBlue][params.dataIndex]
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#fff',
+          fontWeight: 700,
+          formatter: params => params.dataIndex === 1 ? '8兆美元' : `${params.value}%`
+        }
+      }]
+    });
+
+    mountDeckChart('chart-data-network', {
+      backgroundColor: 'transparent',
+      tooltip: { show: false },
+      series: [{
+        type: 'graph',
+        layout: 'force',
+        roam: false,
+        force: { repulsion: 150, edgeLength: [42, 92], gravity: 0.1 },
+        data: [
+          { name: '案件', symbolSize: 62, itemStyle: { color: chartCoral } },
+          { name: '通聯', symbolSize: 42, itemStyle: { color: chartBlue } },
+          { name: '金流', symbolSize: 42, itemStyle: { color: chartWarn } },
+          { name: '社群', symbolSize: 38, itemStyle: { color: '#6bd3ff' } },
+          { name: '位置', symbolSize: 38, itemStyle: { color: chartGreen } },
+          { name: '帳號', symbolSize: 34, itemStyle: { color: '#9ad7ff' } },
+          { name: '裝置', symbolSize: 34, itemStyle: { color: '#ffd28a' } }
+        ],
+        links: [
+          { source: '案件', target: '通聯' },
+          { source: '案件', target: '金流' },
+          { source: '案件', target: '社群' },
+          { source: '通聯', target: '位置' },
+          { source: '社群', target: '帳號' },
+          { source: '帳號', target: '裝置' },
+          { source: '金流', target: '帳號' },
+          { source: '位置', target: '裝置' }
+        ],
+        label: { show: true, color: '#fff', fontSize: 12, fontWeight: 700 },
+        lineStyle: { color: 'rgba(79,195,247,0.46)', width: 1.4, curveness: 0.12 }
+      }]
+    });
+
+    mountDeckChart('chart-taiwan-timeline', {
+      backgroundColor: 'transparent',
+      grid: { left: 34, right: 18, top: 48, bottom: 38 },
+      xAxis: {
+        type: 'category',
+        data: ['2020', '2021', '22–23', '2024', '2025–'],
+        axisLabel: { color: chartText, fontSize: 10 },
+        axisLine: { lineStyle: { color: chartGrid } },
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        max: 5,
+        splitLine: { lineStyle: { color: chartGrid } },
+        axisLabel: { color: 'rgba(255,255,255,0.42)', fontSize: 10 }
+      },
+      series: [
+        {
+          name: '工具成熟度',
+          type: 'line',
+          smooth: true,
+          symbolSize: 9,
+          data: [2, 2.4, 3.1, 3.7, 4.2],
+          lineStyle: { color: chartBlue, width: 3 },
+          itemStyle: { color: chartBlue },
+          areaStyle: { color: 'rgba(79,195,247,0.14)' }
+        },
+        {
+          name: '法制明確度',
+          type: 'line',
+          smooth: true,
+          symbolSize: 9,
+          data: [1.6, 2.3, 2.5, 3.1, 3.4],
+          lineStyle: { color: chartCoral, width: 3 },
+          itemStyle: { color: chartCoral }
+        }
+      ],
+      legend: {
+        top: 14,
+        right: 12,
+        textStyle: { color: chartText, fontSize: 10 },
+        itemWidth: 16,
+        itemHeight: 8
+      }
+    });
+
+    mountDeckChart('chart-regulation-matrix', {
+      backgroundColor: 'transparent',
+      grid: { left: 42, right: 26, top: 40, bottom: 28 },
+      xAxis: {
+        type: 'value',
+        min: 0,
+        max: 10,
+        name: '部署強度',
+        nameTextStyle: { color: chartText, fontSize: 10 },
+        splitLine: { lineStyle: { color: chartGrid } },
+        axisLabel: { color: 'rgba(255,255,255,0.42)', fontSize: 10 }
+      },
+      yAxis: {
+        type: 'value',
+        min: 0,
+        max: 10,
+        name: '法規限制',
+        nameTextStyle: { color: chartText, fontSize: 10 },
+        splitLine: { lineStyle: { color: chartGrid } },
+        axisLabel: { color: 'rgba(255,255,255,0.42)', fontSize: 10 }
+      },
+      series: [{
+        type: 'scatter',
+        symbolSize: 22,
+        data: [
+          { value: [2, 9], name: '歐盟', itemStyle: { color: chartGreen } },
+          { value: [5, 6], name: '美國', itemStyle: { color: chartWarn } },
+          { value: [9, 2], name: '中國', itemStyle: { color: chartCoral } },
+          { value: [4, 5], name: '台灣', itemStyle: { color: chartBlue } }
+        ],
+        label: { show: true, formatter: '{b}', position: 'right', color: '#fff', fontSize: 11 },
+        emphasis: { scale: 1.2 }
+      }]
+    });
+
+    requestAnimationFrame(resizeDeckCharts);
+  }
+
+  function resizeDeckCharts() {
+    deckCharts.forEach(chart => chart.resize());
+  }
+
+  window.addEventListener('load', initDeckCharts);
+  window.addEventListener('resize', resizeDeckCharts);
+  Reveal.on('slidechanged', () => requestAnimationFrame(resizeDeckCharts));
 
   /* ===== 快速跳頁面板 ===== */
   (function() {
